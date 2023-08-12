@@ -44,7 +44,7 @@ void connectToWiFi() {
 //      connectToWiFi();
     }
   }
-//  WiFi.disconnect(true);
+//  WiFi.disccationManager.LineNotify("お薬を飲み忘れています！");onnect(true);
 //  WiFi.mode(WIFI_OFF);
 }
 
@@ -52,8 +52,10 @@ void setup() {
   M5.begin();
   M5.Lcd.setRotation(1);
   M5.Imu.Init();
+  Serial.begin(9600);
   connectToWiFi();
-  M5.Axp.ScreenBreath(3);
+  M5.Axp.ScreenBreath(8);
+  
 }
 
 void loop() {
@@ -62,9 +64,9 @@ void loop() {
     pinMode(10, OUTPUT);
     analogWrite(10, 30);
     digitalWrite(10, HIGH);
-    delay(1000);
+    delay(100);
     digitalWrite(10, LOW);
-    delay(1000); 
+    delay(100); 
     struct tm t;
     if (getLocalTime(&t)) {
       M5.Lcd.setTextSize(5);
@@ -75,13 +77,16 @@ void loop() {
 //      M5.Lcd.setTextSize(2);
       printEfont("お薬を飲む時間帯です。");
       if (t.tm_hour == setMedSchedule.h2 && t.tm_min == setMedSchedule.m2 && !isTaken){
+        missCount++;
+        setMedSchedule.m2 = setMedSchedule.m2 + 5;
+        notificationManager.LineNotify("お薬を飲み忘れています！");
+        M5.Beep.tone(3000, 1000);
+        delay(10000);
+        M5.Beep.update();
+        if (missCount == 3) {
         pinMode(10, INPUT);
         M5.Lcd.fillScreen(BLACK);
         isActive = false;
-//        notificationManager.LineNotify("お薬を飲みました");
-        M5.Beep.tone(3000, 1000);
-        delay(5000);
-        M5.Beep.update();
         setMedSchedule.timeConfigured = false;
         setMedSchedule.h1 = NULL;
         setMedSchedule.h2 = NULL;
@@ -90,10 +95,12 @@ void loop() {
         setMedSchedule.hour = 6;
         setMedSchedule.minute = 0;
         setMedSchedule.cursorIndex = 1;
+        }
       }
     }
      if(angleWatcher.getAngle()){
         pinMode(10, INPUT);
+        notificationManager.LineNotify("お薬を飲みました");
         isTaken = true;
         isActive = false;
         setMedSchedule.timeConfigured = false;
@@ -104,6 +111,11 @@ void loop() {
         setMedSchedule.hour = 6;
         setMedSchedule.minute = 0;
         setMedSchedule.cursorIndex = 1;
+        M5.Lcd.fillScreen(BLACK);
+        M5.Lcd.setTextSize(2);
+        M5.Lcd.setCursor(50, 50);
+        printEfont("服用済み");
+        delay(10000);
         M5.Lcd.fillScreen(BLACK);
     }
   } else {
@@ -126,10 +138,9 @@ void loop() {
           if (t.tm_hour == setMedSchedule.h1 && t.tm_min == setMedSchedule.m1) {
             isActive = true;
             M5.Lcd.fillScreen(BLACK);
-//            notificationManager.LineNotify("お薬を飲む時間帯です");
+            notificationManager.LineNotify("お薬を飲む時間帯です");
           }
       }
-      
     }
   }
 
