@@ -88,7 +88,7 @@ void SetMedSchedule::setTime() {
       cursorIndex = 3;
     }
     if(M5.BtnA.wasPressed()) {
-      minute = minute + 10;
+      minute = minute + 1;
       if (minute > 59) minute = 0;
     }
   } else if (cursorIndex == 3) {
